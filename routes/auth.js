@@ -1,3 +1,5 @@
+//esta auth es para usuarios que no son de spotify 
+
 const { Router } = require('express');
 const router = Router();
 

@@ -1,163 +1,221 @@
-const { response, text, json } = require('express')
-const axios = require('axios')
+const { response, request } = require('express')
+const bcryptjs = require('bcryptjs');  //este paquete para encriptar la contrasena
 
-const client_id = process.env.SPOTIFY_ID
-const client_secret = process.env.CLIENT_SECRET
+const Usuario = require('../models/usuario')
 
 
-const authToken = (req, res = response) => { //este es el que tengo en mi app
+const { authorizeUserFetch, getTokenUserFetch, refreshToken, getUser, getTokenWithoutCode } = require('../helpers/spotifyAuth/index')
+
+
+
+const authToken = (req, res = response) => { //este es para logear usuarios que no tienen cuenta en spotify
    
-  try {
-      
-    axios({
-        url:"https://accounts.spotify.com/api/token",
-        method: "post",
-        params: {
-            grant_type: "client_credentials"
-        },
-        headers:{
-          "Accept": "application/json",
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-       auth: {
-        username: client_id,
-        password: client_secret
-    }
-    }).then( obj => { 
-        const {data} = obj
-        console.log(data);
-        res.json({
-           ok:true,
-           token: data.access_token
-        })
+    const token = getTokenWithoutCode()
+
+}
+
+
+const login = async(req, res) => {
+
+  const { nombre, correo } = req.body
+       
+  const checkUser = await Usuario.findOne({correo})
+  
+   if(!checkUser){
+
+    return res.status(400).json({
+       msg:'No se encontro usuario'
      })
+   } else{
+      
+     res.json({
+       user:checkUser
+     })
+
+   }
+
+
+}
+
+
+const authUser = async(req = request, res = response) => {
+  
+   const { nombre, correo, password } = req.body
+     
+   
+    const checkuser = await Usuario.findOne({correo})
+
+    if(checkuser){
+
+      return res.status(400).json({
+        msg: 'Un usuario ya existe con ese email'
+      })
+    }
+
+
+     const token = await getTokenWithoutCode()
+
+    const user = new Usuario({nombre,password, correo })
+
+    const salt = bcryptjs.genSaltSync()
+    user.password = bcryptjs.hashSync( password, salt ) //encripto la contrasena
+
+     await user.save()
+
+     res.json({
+       user: user,
+       token
+     })
+
+}
+
+
+ const authorizeUser = async(req, res = response) => { //aqui el codigo de acceso para pedir el access token mas abajo
+
+       const urlAuth = await authorizeUserFetch()
+       res.json(urlAuth)
+  
+ }
+
+
+
+
+ const authUserSpotify = async(req, res = response) => {  //aqui obtengo el acces token  y logue al usuario de spotify
     
 
-  } catch (error) {
-    console.log(error);  
+     const { codigo } = req.body
+    
+      if( !codigo ){
+       return res.status(500).json({
+          msg: 'El codigo de validacion para acceder no se obtuvo'
+        })
+      }
+ 
+       const { access_token:token } = await getTokenUserFetch(codigo) 
 
-  }
+       const userdata = await getUser(token)  //obtnego info del usuario 
+       const { display_name:nombre, email:correo, } = userdata
+         
+         const checkuser = Usuario.findOne({correo})
+
+         if( checkuser ) {
+           return res.status(400).json({
+             msg:'Ya ese Usuario esta registardo'
+           })
+         }
+       
+
+        if( userdata ){  
+            
+          const user = new Usuario({nombre, correo, spotify:true})
+          await user.save()
+          console.log(user);
+
+          res.status(200).json({
+            msg: `Bienvenido ${nombre}`,
+            token: token
+           })
+
+        } else {
+          return res.status(500).json({
+            msg: "Ha habido un error en la data recibida"
+          })
+        }
+
+ }
+
+
+
+ 
+ const authRefreshToken = async(req, res = response) => {   //para refrescar el token
+      
+       let { token } = req.body
+
+      const { access_token } = await refreshToken(token)
+ 
+       if( !access_token ){
+         res.status(500).json({
+           msg:'No se recibio un token refresh '
+         })
+
+       }
+
+       if( access_token ){
+         res.json({
+           msg: 'token refreshed',
+           token_refreshed: access_token
+         })
+       }
+
+     
+ }
+
+
+
+
+ const updeteUser = async(req, res) => {
+
+    const { id } = req.params
+   
+    const { ...usuariodata } = req.body
+         
+
+    const userUpdeted = await Usuario.findByIdAndUpdate(id, usuariodata)
+     
+     if(!userUpdeted){
+
+      return res.status(400).json({
+         msg:'No se modifico el usuario'
+       })
+
+     } else{
+        
+       res.json({
+         userUpdeted: userUpdeted
+       })
+
+     }
+
 
 }
 
 
 
 
- const authTokenUser = (req, res = response) => { //aqui el codigo de acceso para pedir el access token mas abajo
-
-     try {
-        axios({
-          url:"https://accounts.spotify.com/authorize",
-        method: "get",
-        params: {
-          client_id:'1de72a570fb94a9fa7dbab6d8dd16c24',
-          response_type:'code',
-          redirect_uri:'http://localhost:4000/'
-        },
-       /* headers:{
-          "Accept": "application/json",
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-       auth: {
-        username: client_id,
-        password: client_secret
-    }*/
+ const deleteUser = async(req, res) => {
+   
+  const { id } = req.params
+  console.log(id);
  
-        }).then( obj => { 
-         //  console.log(obj);
-        console.log(obj.request.res.responseUrl);
-          const url = obj.request.res.responseUrl
-           res.redirect(url)
-           
-        /* res.json({
-            ok:true
-          })*/
-       })
-     } catch (error) {
-       console.log(error);
-     }
+
+  const userDeleted = await Usuario.findByIdAndUpdate(id, {estado: false})
+
+   if(!userDeleted){
+
+    return res.status(400).json({
+       msg:'No se elemino el usuario'
+     })
+
+   } else{
+      
+     res.json({
+       userDeleted: userDeleted
+     })
+
+   }
 
 
- }
-
-
- const authTokenUserGet = (req, res = response) => {  //aqui obtengo el acces token 
-
-    try {
-       
-       axios({
-         url: 'https://accounts.spotify.com/api/token',
-         method: 'post',
-         headers: {
-           "Authorization": "Basic MWRlNzJhNTcwZmI5NGE5ZmE3ZGJhYjZkOGRkMTZjMjQ6ZDY2ZWMzNjFkYWQ0NDM5MzliMzFiNDg0ZWY3YWViNzA="
-         },
-         params: {
-          grant_type: "authorization_code",
-          code: "AQDTqmjXkpa2SEUovVVagvj03X79Bh92jgm_nxO3GuFoqvj9J2JuI4wNS3pHMwqbzceXae-hh6DTRLU_sxdaMZy754B11lVt5EmjXxeJM_bLYlaAZt_q1JZPHBWCq7zUxFd4dhfErWbEXNqK7hq6oEjMgzvHKe1f9k8",
-          redirect_uri: "http://localhost:4000/"
-         }
-
-
-       }).then(obj => {
-          console.log(obj);
-
-         res.json({
-           ok:true,
-        
-         })
-
-       })
-
-    } catch (error) {
-      console.log(error);
-    }
-
-
-
- }
-
-
- const authRefreshToken = (req, res = response) => {   //para refrescar el token
-
-     try {
-       
-      axios({
-        url: 'https://accounts.spotify.com/api/token',
-        method: 'post',
-        headers: {
-          "Authorization": "Basic MWRlNzJhNTcwZmI5NGE5ZmE3ZGJhYjZkOGRkMTZjMjQ6ZDY2ZWMzNjFkYWQ0NDM5MzliMzFiNDg0ZWY3YWViNzA="
-        },
-        params: {
-         grant_type: "refresh_token",
-         
-         refresh_token: 'AQBxMErfjJb37F1Tn3Oh8W7Hiqpjw7ecEPRqK9Tcl9Odw-8T_70h7CsU4Ews8Gf2g5SDngUQ1583SPrQATvNAL0yCwZ9oynKfxOTBCv6UtUseQBAGy9pXpiucv9BEFmLmE4',
-         redirect_uri: "http://localhost:4000/"
-        }
-
-
-      }).then(obj => {
-         console.log(obj);
-
-        res.json({
-          ok:true,
-          
-       
-        })
-
-      })
-
-
-     } catch (error) {
-        console.log(error);
-     }
-
- }
+}
 
 
 
 module.exports= {
     authToken,
-    authTokenUser,
-    authTokenUserGet,
+    login,
+    updeteUser,
+    deleteUser,
+    authorizeUser,
+    authUserSpotify,
+    authUser,
     authRefreshToken
 }
