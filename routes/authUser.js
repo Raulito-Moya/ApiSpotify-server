@@ -3,18 +3,26 @@ const { check } = require('express-validator');
 const router = Router();
 
 //esto ruta es solo un ejemplo 
-const { authorizeUser, authTokenUserGet, authRefreshToken, authUserSpotify, authUser, login, deleteUser, updeteUser }= require('../controllers/auth');
+const { authorizeUser, authTokenUserGet, authRefreshToken, authUserSpotify, authUser, login, deleteUser, updeteUser, getuserbyid }= require('../controllers/auth');
 const { existeUsuarioPorId } = require('../helpers/db-validators');
 const { validarCampos } = require('../middlewares/validar-campos');
 
 
-router.get(  //logueo al usuario
+router.post(  //logueo al usuario
       '/loginuser',[
-       check('nombre','El nombre es obligatorio').isAlpha().not().isEmpty(),
        check('correo','El correo es obligatorio').isEmail(),
+       check('password','El password es obligatorio').not().isEmpty(),
        validarCampos
       ],
       login
+)
+
+router.post(
+      '/getuserbyid',[
+         check('uid','El uid es requerido').isMongoId(),
+         validarCampos
+      ],
+      getuserbyid
 )
 
 
@@ -24,7 +32,10 @@ router.get(   //aqui obtengo el url para mandarselo al front y obtnener el codig
       authorizeUser
 )
 
-
+/*router.get(
+      '/?code',
+      authUserSpotify
+)*/
 
 router.post(      
        '/usertokenauth',[
@@ -33,6 +44,8 @@ router.post(
        ],
        authUserSpotify  //logueo al usuario de spotify y obtengo el token por primer vez y obtnego el token
 )
+
+
 
 
 router.post(

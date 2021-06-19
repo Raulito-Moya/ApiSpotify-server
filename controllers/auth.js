@@ -8,10 +8,15 @@ const { authorizeUserFetch, getTokenUserFetch, refreshToken, getUser, getTokenWi
 
 
 
-const authToken = (req, res = response) => { //este es para logear usuarios que no tienen cuenta en spotify
+const authToken = async(req, res = response) => { //este es para logear usuarios que no tienen cuenta en spotify
    
-    const token = getTokenWithoutCode()
-
+    const token = await getTokenWithoutCode()
+  
+     if( token ){
+       res.status(200).json({
+         token
+       })
+     }
 }
 
 
@@ -20,7 +25,8 @@ const login = async(req, res) => {
   const { nombre, correo } = req.body
        
   const checkUser = await Usuario.findOne({correo})
-  
+  const token = await getTokenWithoutCode() 
+
    if(!checkUser){
 
     return res.status(400).json({
@@ -29,18 +35,41 @@ const login = async(req, res) => {
    } else{
       
      res.json({
-       user:checkUser
+       user:checkUser,
+       token
      })
 
    }
 
+}
+
+const getuserbyid = async(req, res) => {
+
+   const { uid } = req.body
+
+   const checkUser = await Usuario.findById(uid)
+   const token = await getTokenWithoutCode() 
+
+   if(!checkUser){
+
+    return res.status(400).json({
+       msg:'No se encontro usuario'
+     })
+   } else{
+      
+     res.json({
+       user:checkUser,
+       token
+     })
+
+   }
 
 }
 
 
-const authUser = async(req = request, res = response) => {
+const authUser = async(req = request, res = response) => { //se crea el usuario por primera vez
   
-   const { nombre, correo, password } = req.body
+    const { nombre, correo, password } = req.body
      
    
     const checkuser = await Usuario.findOne({correo})
@@ -73,6 +102,7 @@ const authUser = async(req = request, res = response) => {
  const authorizeUser = async(req, res = response) => { //aqui el codigo de acceso para pedir el access token mas abajo
 
        const urlAuth = await authorizeUserFetch()
+       console.log(urlAuth);
        res.json(urlAuth)
   
  }
@@ -91,16 +121,25 @@ const authUser = async(req = request, res = response) => {
         })
       }
  
-       const { access_token:token } = await getTokenUserFetch(codigo) 
+       const { access_token:token } = await getTokenUserFetch(codigo) //obtengo el token
 
        const userdata = await getUser(token)  //obtnego info del usuario 
+       // console.log(userdata);
        const { display_name:nombre, email:correo, } = userdata
          
-         const checkuser = Usuario.findOne({correo})
-
-         if( checkuser ) {
-           return res.status(400).json({
-             msg:'Ya ese Usuario esta registardo'
+         let checkuser = await Usuario.findOne({correo})
+          
+         await JSON.stringify(checkuser)    
+          console.log(checkuser);
+         
+          
+         if( checkuser ) { 
+          
+            
+           return res.json({
+             user: checkuser,
+             token
+             
            })
          }
        
@@ -112,8 +151,9 @@ const authUser = async(req = request, res = response) => {
           console.log(user);
 
           res.status(200).json({
-            msg: `Bienvenido ${nombre}`,
-            token: token
+             user: user,
+             token 
+             
            })
 
         } else {
@@ -212,6 +252,7 @@ const authUser = async(req = request, res = response) => {
 module.exports= {
     authToken,
     login,
+    getuserbyid,
     updeteUser,
     deleteUser,
     authorizeUser,

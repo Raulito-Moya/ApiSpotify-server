@@ -9,8 +9,8 @@ const authorizeUserFetch = () => {  //esta funcion es para obtener el codigo de 
     try {
      const url = axios({
           url:"https://accounts.spotify.com/authorize",
-        method: "get",
-        params: {
+          method: "get",
+          params: {
           client_id:'1de72a570fb94a9fa7dbab6d8dd16c24',
           response_type:'code',
           redirect_uri:'http://localhost:4000/',
@@ -24,7 +24,8 @@ const authorizeUserFetch = () => {  //esta funcion es para obtener el codigo de 
  
         }).then( obj => { 
           const url = obj.request.res.responseUrl
-            return url
+          console.log(url);
+            return url  //url  pra obtnener el codigo de validacion
        /* console.log(obj.request.res.responseUrl);
           const url = obj.request.res.responseUrl
            res.redirect(url)*/

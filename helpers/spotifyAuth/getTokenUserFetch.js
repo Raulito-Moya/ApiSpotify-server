@@ -21,7 +21,7 @@ const getTokenUserFetch = async(codigo) => {
  
  
         }).then(obj => {
-          console.log(obj.data); //retorno el acces token y datos q lo cmplementan
+         // console.log(obj.data); //retorno el acces token y datos q lo cmplementan
            return obj.data
 
         })
