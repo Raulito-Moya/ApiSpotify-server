@@ -23,23 +23,35 @@ const authToken = async(req, res = response) => { //este es para logear usuarios
 const login = async(req, res) => {
 
   const { nombre, correo } = req.body
-       
-  const checkUser = await Usuario.findOne({correo})
-  const token = await getTokenWithoutCode() 
 
-   if(!checkUser){
+  try {
+    
+    const checkUser = await Usuario.findOne({correo})
+    const token = await getTokenWithoutCode() 
+  
+     if(!checkUser){
+  
+      return res.status(400).json({
+         msg:'No se encontro usuario'
+       })
+     } else{
+        
+       res.json({
+         user:checkUser,
+         token
+       })
+  
+     }
 
-    return res.status(400).json({
-       msg:'No se encontro usuario'
-     })
-   } else{
-      
-     res.json({
-       user:checkUser,
-       token
-     })
 
-   }
+
+  } catch (error) {
+     
+    console.log(error);
+
+  }      
+
+
 
 }
 
