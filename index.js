@@ -19,7 +19,7 @@ conectardb()
 //CORS
 app.use(cors()) //aqui ya configuro el CORDS mas facil
 
-app.use((req, res, next) => {
+/*app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
 
   // authorized headers for preflight requests
@@ -32,7 +32,7 @@ app.use((req, res, next) => {
       res.header('Access-Control-Allow-Methods', 'GET, PATCH, PUT, POST, DELETE, OPTIONS');
       res.send();
   });
-});
+});*/
 
 app.use( express.static('public'))
 
