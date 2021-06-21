@@ -13,7 +13,7 @@ const authorizeUserFetch = () => {  //esta funcion es para obtener el codigo de 
           params: {
           client_id:'1de72a570fb94a9fa7dbab6d8dd16c24',
           response_type:'code',
-          redirect_uri:'http://localhost:4000/',
+          redirect_uri:'https://spotify-searching.herokuapp.com/',
           scope: 'user-read-email user-read-private'
         },
        /* headers:{
