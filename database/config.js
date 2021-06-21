@@ -4,7 +4,7 @@ const dbConnection = async() => {
 
   try {
       
-     await mongoose.connect('mongodb+srv://Raul_Admin:60aNj0FLWAiTsRsY@cluster0.bkgoo.mongodb.net/Spotify_Search', {
+     await mongoose.connect(process.env.MONGODB_CNN, {
          useNewUrlParser: true,
          useUnifiedTopology: true,
          useCreateIndex: true,
