@@ -22,8 +22,9 @@ const authToken = async(req, res = response) => { //este es para logear usuarios
 
 const login = async(req, res) => {
 
-  const { nombre, correo } = req.body
-
+  const { correo } = req.body
+   console.log(correo);
+   
   try {
     
     const checkUser = await Usuario.findOne({correo})

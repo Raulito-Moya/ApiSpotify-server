@@ -19,8 +19,8 @@ const getTokenWithoutCode = () => {
               "Content-Type": "application/x-www-form-urlencoded"
             },
            auth: {
-            username: client_id,
-            password: client_secret
+            username: '1de72a570fb94a9fa7dbab6d8dd16c24',
+            password: 'd66ec361dad443939b31b484ef7aeb70'
         }
         }).then( obj => { 
             const {data} = obj
