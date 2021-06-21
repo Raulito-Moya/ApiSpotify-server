@@ -16,7 +16,7 @@ const getTokenUserFetch = async(codigo) => {
           params: {
            grant_type: "authorization_code",
            code: codigo,
-           redirect_uri: "http://localhost:4000/"
+           redirect_uri: "https://spotify-searching.herokuapp.com/"
           }
  
  

@@ -7,14 +7,7 @@ const { authorizeUser, authTokenUserGet, authRefreshToken, authUserSpotify, auth
 const { existeUsuarioPorId } = require('../helpers/db-validators');
 const { validarCampos } = require('../middlewares/validar-campos');
 
-router.post(
-      '/test',
-      (req, res)=>{
-            res.json({
-                  frase:'Hola mundo'
-            })
-      }
-)
+
 
 router.post(  //logueo al usuario
       '/loginuser',[
