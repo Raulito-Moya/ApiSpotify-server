@@ -5,7 +5,7 @@ const client_secret = process.env.CLIENT_SECRET
 
 
 const authorizeUserFetch = () => {  //esta funcion es para obtener el codigo de autorizo ,pero como lo estoy obteniendo en el front no lo estoy usuando aca
-
+       
     try {
      const url = axios({
           url:"https://accounts.spotify.com/authorize",
