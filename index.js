@@ -1,7 +1,7 @@
 const express = require('express')
 require('dotenv').config();
 const cors = require('cors');
-
+const path = require('path');
 const { dbConnection } = require('./database/config');
 
 
@@ -14,18 +14,20 @@ const conectardb = async() => {
 
 conectardb()
 
+//lectura y parseo del body
 
+app.use( express.json())
 
 //CORS
 app.use(cors()) //aqui ya configuro el CORDS mas facil
 
-
-
 app.use( express.static('public') )
 
+app.get( '*' , (req,res) => {
+  
+  res.sendFile(path.join(__dirname, 'public','index.html'))
+} )
 
-//lectura y parseo del body
-app.use( express.json())
 
 
 
