@@ -23,10 +23,7 @@ app.use(cors()) //aqui ya configuro el CORDS mas facil
 
 app.use( express.static('public') )
 
-app.get( '*' , (req,res) => {
-  
-  res.sendFile(path.join(__dirname, 'public','index.html'))
-} )
+
 
 
 
@@ -37,6 +34,11 @@ app.use('/api/auth', require('./routes/auth') );
 app.use('/api/auth',require('./routes/authUser')) 
 app.use('/api', require('./routes/search') )
 
+
+app.get( '*' , (req,res) => {
+  
+  res.sendFile(path.join(__dirname, 'public','index.html'))
+} )
 
 
 
